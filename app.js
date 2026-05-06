@@ -1,65 +1,96 @@
 const UART_SERVICE_UUID =
-  '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+'6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 
-const UART_TX_CHARACTERISTIC_UUID =
-  '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+const UART_RX_CHARACTERISTIC_UUID =
+'6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
-let txCharacteristic = null;
+let rxCharacteristic = null;
 
 document
-  .getElementById('connectBtn')
-  .addEventListener('click', connectMicrobit);
+.getElementById('connectBtn')
+.addEventListener('click', connectMicrobit);
 
 async function connectMicrobit() {
 
   try {
 
     const device =
-      await navigator.bluetooth.requestDevice({
-        filters: [
-          { namePrefix: 'BBC micro:bit' }
-        ],
-        optionalServices: [UART_SERVICE_UUID]
-      });
+    await navigator.bluetooth.requestDevice({
 
-    const server = await device.gatt.connect();
+      filters: [{
+        services: [UART_SERVICE_UUID]
+      }]
+
+    });
+
+    console.log("Dispositivo encontrado");
+
+    const server =
+    await device.gatt.connect();
+
+    console.log("GATT conectado");
 
     const service =
-      await server.getPrimaryService(
-        UART_SERVICE_UUID
-      );
+    await server.getPrimaryService(
+      UART_SERVICE_UUID
+    );
 
-    txCharacteristic =
-      await service.getCharacteristic(
-        UART_TX_CHARACTERISTIC_UUID
-      );
+    console.log("Servicio UART OK");
+
+    rxCharacteristic =
+    await service.getCharacteristic(
+      UART_RX_CHARACTERISTIC_UUID
+    );
+
+    console.log("Característica RX OK");
 
     document.getElementById('status')
-      .innerText = '✅ Conectado';
+    .innerText = '✅ Conectado';
 
-  } catch (error) {
+  }
+
+  catch(error) {
 
     console.error(error);
 
     document.getElementById('status')
-      .innerText = '❌ Error de conexión';
+    .innerText =
+    '❌ Error de conexión';
+
   }
+
 }
 
 async function sendCommand(command) {
 
-  if (!txCharacteristic) {
+  if (!rxCharacteristic) {
 
     alert('Primero conecta la micro:bit');
     return;
   }
 
-  const encoder = new TextEncoder();
+  try {
 
-  const data =
+    const encoder =
+    new TextEncoder();
+
+    const data =
     encoder.encode(command + '\n');
 
-  await txCharacteristic.writeValue(data);
+    await rxCharacteristic
+    .writeValueWithoutResponse(data);
 
-  console.log('Enviado:', command);
+    console.log(
+      'Enviado:',
+      command
+    );
+
+  }
+
+  catch(error){
+
+    console.error(error);
+
+  }
+
 }
