@@ -1,155 +1,43 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>micro:bit BLE</title>
-
-<style>
-
-body{
-  font-family:Arial;
-  background:#0f172a;
-  color:white;
-  text-align:center;
-  padding:30px;
-}
-
-button{
-  background:#2563eb;
-  color:white;
-  border:none;
-  padding:15px 20px;
-  margin:10px;
-  border-radius:10px;
-  font-size:18px;
-  cursor:pointer;
-}
-
-button:hover{
-  background:#1d4ed8;
-}
-
-#status{
-  margin-top:20px;
-  font-size:20px;
-}
-
-</style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microbit Control</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1>Control micro:bit 🚀</h1>
+  <div class="container">
 
-<button onclick="connectMicrobit()">
-Conectar micro:bit
-</button>
+    <h1>Control micro:bit</h1>
 
-<br><br>
+    <button id="connectBtn">
+      Conectar micro:bit
+    </button>
 
-<button onclick="sendCommand('LED_ON')">
-LED ON
-</button>
+    <div class="section">
 
-<button onclick="sendCommand('LED_OFF')">
-LED OFF
-</button>
+      <h2>LED P8</h2>
 
-<p id="status">
-Desconectado
-</p>
+      <button onclick="sendCommand('LED_ON')">
+        LED ON
+      </button>
 
-<script>
+      <button onclick="sendCommand('LED_OFF')">
+        LED OFF
+      </button>
 
-const UART_SERVICE_UUID =
-'6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+    </div>
 
-const UART_RX_CHARACTERISTIC_UUID =
-'6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+    <p id="status">
+      Desconectado
+    </p>
 
-let rxCharacteristic = null;
+  </div>
 
-async function connectMicrobit(){
-
-  try{
-
-    const device =
-    await navigator.bluetooth.requestDevice({
-
-      filters: [{
-        services: [UART_SERVICE_UUID]
-      }]
-
-    });
-
-    const server =
-    await device.gatt.connect();
-
-    const service =
-    await server.getPrimaryService(
-      UART_SERVICE_UUID
-    );
-
-    rxCharacteristic =
-    await service.getCharacteristic(
-      UART_RX_CHARACTERISTIC_UUID
-    );
-
-    document.getElementById('status')
-    .innerHTML = '✅ Conectado';
-
-    console.log("Conectado OK");
-
-  }
-
-  catch(error){
-
-    console.error(error);
-
-    document.getElementById('status')
-    .innerHTML = '❌ Error conexión';
-
-  }
-
-}
-
-async function sendCommand(command){
-
-  if(!rxCharacteristic){
-
-    alert('Primero conecta la micro:bit');
-    return;
-  }
-
-  try{
-
-    const encoder = new TextEncoder();
-
-    const data =
-    encoder.encode(command + '\n');
-
-    await rxCharacteristic.writeValue(data);
-
-    console.log("Enviado:", command);
-
-  }
-
-  catch(error){
-
-    console.error(error);
-
-  }
-
-}
-
-</script>
+  <script src="app.js"></script>
 
 </body>
-
 </html>
