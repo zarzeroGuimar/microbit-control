@@ -46,20 +46,31 @@ async function connectMicrobit() {
   }
 }
 
-async function sendCommand(command) {
+async function sendCommand(command){
 
-  if (!txCharacteristic) {
+  if(!rxCharacteristic){
 
-    alert('Primero conecta la micro:bit');
+    alert('Conecta primero');
     return;
   }
 
-  const encoder = new TextEncoder();
+  try{
 
-  const data =
+    const encoder = new TextEncoder();
+
+    const data =
     encoder.encode(command + '\n');
 
-  await txCharacteristic.writeValue(data);
+    await rxCharacteristic.writeValue(data);
 
-  console.log('Enviado:', command);
+    console.log(command);
+
+  }
+
+  catch(error){
+
+    console.error(error);
+
+  }
+
 }
