@@ -1,52 +1,149 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Microbit Control</title>
-  <link rel="stylesheet" href="style.css">
+
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>micro:bit BLE</title>
+
+<style>
+
+body{
+  font-family:Arial;
+  background:#0f172a;
+  color:white;
+  text-align:center;
+  padding:30px;
+}
+
+button{
+  background:#2563eb;
+  color:white;
+  border:none;
+  padding:15px 20px;
+  margin:10px;
+  border-radius:10px;
+  font-size:18px;
+}
+
+#status{
+  margin-top:20px;
+}
+
+</style>
+
 </head>
+
 <body>
 
-  <div class="container">
-    <h1>Control micro:bit 🚀</h1>
+<h1>micro:bit BLE</h1>
 
-    <button id="connectBtn">Conectar micro:bit</button>
+<button onclick="connectMicrobit()">
+Conectar
+</button>
 
-    <div class="section">
-      <h2>LED</h2>
+<br>
 
-      <button onclick="sendCommand('LED_ON')">
-        LED ON
-      </button>
+<button onclick="sendCommand('LED_ON')">
+LED ON
+</button>
 
-      <button onclick="sendCommand('LED_OFF')">
-        LED OFF
-      </button>
-    </div>
+<button onclick="sendCommand('LED_OFF')">
+LED OFF
+</button>
 
-    <div class="section">
-      <h2>Servo</h2>
+<p id="status">
+Desconectado
+</p>
 
-      <button onclick="sendCommand('SERVO:0')">
-        0°
-      </button>
+<script>
 
-      <button onclick="sendCommand('SERVO:90')">
-        90°
-      </button>
+const UART_SERVICE_UUID =
+'6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 
-      <button onclick="sendCommand('SERVO:180')">
-        180°
-      </button>
-    </div>
+const UART_RX_CHARACTERISTIC_UUID =
+'6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
-    <p id="status">
-      Desconectado
-    </p>
-  </div>
+let rxCharacteristic;
 
-  <script src="app.js"></script>
+async function connectMicrobit(){
+
+  try{
+
+    const device =
+    await navigator.bluetooth.requestDevice({
+
+      filters: [{
+        services: [UART_SERVICE_UUID]
+      }]
+
+    });
+
+    const server =
+    await device.gatt.connect();
+
+    const service =
+    await server.getPrimaryService(
+      UART_SERVICE_UUID
+    );
+
+    rxCharacteristic =
+    await service.getCharacteristic(
+      UART_RX_CHARACTERISTIC_UUID
+    );
+
+    document.getElementById('status')
+    .innerHTML = '✅ Conectado';
+
+  }
+
+  catch(error){
+
+    console.error(error);
+
+    document.getElementById('status')
+    .innerHTML = '❌ Error';
+
+  }
+
+}
+
+async function sendCommand(command){
+
+  if(!rxCharacteristic){
+
+    alert('Conecta primero');
+    return;
+  }
+
+  try{
+
+    const encoder =
+    new TextEncoder('utf-8');
+
+    const data =
+    encoder.encode(command + '\n');
+
+    await rxCharacteristic
+    .writeValueWithoutResponse(data);
+
+    console.log(command);
+
+  }
+
+  catch(error){
+
+    console.error(error);
+
+  }
+
+}
+
+</script>
 
 </body>
+
 </html>
